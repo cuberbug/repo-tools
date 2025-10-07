@@ -38,15 +38,15 @@ while true; do
 
     case "$CHOICE" in
         "${MENU_OPTIONS[1]}") # Сохранить (git push)
-            "$REPO_ROOT/tools/git-manager/push.sh"
+            "$REPO_ROOT/git-manager/push.sh"
             ;;
 
         "${MENU_OPTIONS[2]}") # Обновить (git pull)
-            "$REPO_ROOT/tools/git-manager/pull.sh"
+            "$REPO_ROOT/git-manager/pull.sh"
             ;;
 
         "${MENU_OPTIONS[3]}")  # Утилита для переименования
-            "$REPO_ROOT/tools/renamer/run-for-wallpapers.sh"
+            "$REPO_ROOT/renamer/run-for-wallpapers.sh"
             ;;
 
         "${MENU_OPTIONS[0]}")  # Выход
