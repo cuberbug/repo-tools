@@ -14,8 +14,11 @@
 
 ### Зависимости
 
+Обязательно:
 - <img src="https://www.svgrepo.com/show/303548/git-icon-logo.svg" width="16" height="16"> [Git](https://git-scm.com)
 - <img src="https://www.svgrepo.com/show/452091/python.svg" width="16" height="16"> [Python](https://www.python.org)
+
+Опционально:
 - <img src="https://avatars.githubusercontent.com/u/57376114?s=48&v=4" width="16" height="16"> [gum](https://github.com/charmbracelet/gum) — инструмент для оформления TUI, используется в `menu.sh`
 
 ### Git-manager
@@ -29,7 +32,6 @@
 При ручном запуске `push.sh` из терминала доступно указание параметров для команды `git push <параметр>`. Например так:
 ```shell
 # Выполнить принудительную отправку изменений в удалённый репозиторий
-# (если вы находитесь в корневой директории репозитория)
 ./git-manager/push.sh --force
 ```
 Время для автоматических коммитов указывается в формате UTC.
