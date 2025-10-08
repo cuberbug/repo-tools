@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-set -o errexit
-set -o nounset
-set -o pipefail
 
 # Определяет директорию, в которой лежит этот (common.sh) скрипт
 # Это нужно, чтобы надёжно подключать другие файлы (decor.sh, utils.sh)
