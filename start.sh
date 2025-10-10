@@ -60,16 +60,17 @@ main() {
     set -o errexit
 
     check_dependencies
-    setup_venv --venv-dir "${VENV_DIR}" \
-               --python "${VENV_PYTHON_FILE}" \
-               --pip "${VENV_PIP_FILE}" \
-               --requirements "${REQUIREMENTS_FILE}"
+    setup_venv \
+        --venv-dir "${VENV_DIR}" \
+        --python   "${VENV_PYTHON_FILE}" \
+        --pip      "${VENV_PIP_FILE}" \
+        --requirements "${REQUIREMENTS_FILE}"
 
     local venv_python="$(choose_python "${VENV_PYTHON_FILE}")"
     local menu_script="${TOOLS_ROOT}/menu/menu.py"
 
     if confirm "Запустить главное меню"; then
-        echo -e "${DECOR_BLUE} Запуск меню...${RESET}"
+        echo -e "${DECOR_BLUE}Запуск меню...${RESET}"
         "${venv_python}" "${menu_script}"
     else
         echo -e "${DECOR_YELLOW_FG}Запуск меню отменён.${RESET}"
@@ -82,7 +83,7 @@ main() {
 if main; then
     exit 0
 else
-    echo -e "\n${DECOR_ERROR} ${BOLD}В процессе инициализации произошла ошибка.${RESET}"
+    echo -e "\n${TITLE_ERROR}${BOLD}В процессе инициализации произошла ошибка.${RESET}"
     echo "Пожалуйста, просмотрите вывод выше, чтобы понять причину."
     echo "Окно не будет закрыто автоматически, чтобы вы могли изучить лог."
     read -p "Нажмите Enter для выхода..."
