@@ -9,8 +9,8 @@ cd "$REPO_ROOT" || exit 1
 
 # Проверяет, что gum установлен
 if ! command -v gum &>/dev/null; then
-    echo -e "${TITLE_ERROR}Gum не установлен. Этот пакет является обязательной зависимостью для меню." >&2
-    exit 1
+  echo -e "${TITLE_ERROR}Gum не установлен. Этот пакет является обязательной зависимостью для меню." >&2
+  exit 1
 fi
 
 
@@ -27,38 +27,38 @@ MENU_OPTIONS=(
 # --- Главный цикл меню ---
 
 while true; do
-    clear
+  clear
 
-    # Создаём временный массив для отображения:
-    # Сначала все элементы с 1-го до конца, а в конец добавляет 0-й элемент.
-    DISPLAY_OPTIONS=("${MENU_OPTIONS[@]:1}" "${MENU_OPTIONS[0]}")
+  # Создаёт временный массив для отображения:
+  # Сначала все элементы с 1-го до конца, а в конец добавляет 0-й элемент.
+  DISPLAY_OPTIONS=("${MENU_OPTIONS[@]:1}" "${MENU_OPTIONS[0]}")
 
-    # Передаёт в gum choose отсортированный для показа массив.
-    CHOICE=$(gum choose "${DISPLAY_OPTIONS[@]}")
+  # Передаёт в gum choose отсортированный для показа массив.
+  CHOICE=$(gum choose "${DISPLAY_OPTIONS[@]}")
 
-    case "$CHOICE" in
-        "${MENU_OPTIONS[1]}") # Сохранить (git push)
-            "$REPO_ROOT/git-manager/push.sh"
-            ;;
+  case "$CHOICE" in
+    "${MENU_OPTIONS[1]}") # Сохранить (git push)
+      "${REPO_ROOT}/git-manager/push.sh"
+      ;;
 
-        "${MENU_OPTIONS[2]}") # Обновить (git pull)
-            "$REPO_ROOT/git-manager/pull.sh"
-            ;;
+    "${MENU_OPTIONS[2]}") # Обновить (git pull)
+      "${REPO_ROOT}/git-manager/pull.sh"
+      ;;
 
-        "${MENU_OPTIONS[3]}")  # Утилита для переименования
-            "$REPO_ROOT/renamer/run-for-wallpapers.sh"
-            ;;
+    "${MENU_OPTIONS[3]}") # Утилита для переименования
+      "${REPO_ROOT}/renamer/run-for-wallpapers.sh"
+      ;;
 
-        "${MENU_OPTIONS[0]}")  # Выход
-            break
-            ;;
-    esac
+    "${MENU_OPTIONS[0]}") # Выход
+      break
+      ;;
+  esac
 
-    # --- Меню после действия ---
-    # Если был выбран не "Выход", показывает это меню
-    if [[ "$CHOICE" != ${MENU_OPTIONS[0]} ]]; then
-        gum confirm "Вернуться в главное меню?" && continue || break
-    fi
+  # --- Меню после действия ---
+  # Если был выбран не "Выход", показывает это меню
+  if [[ "$CHOICE" != ${MENU_OPTIONS[0]} ]]; then
+    gum confirm "Вернуться в главное меню?" && continue || break
+  fi
 done
 
 # Прощальное сообщение
