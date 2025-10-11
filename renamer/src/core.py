@@ -4,6 +4,7 @@ import sys
 
 from .utils import is_image, is_already_renamed, generate_new_filename
 
+
 def rename_files(directory: str, dry_run: bool = False):
     """
     Рекурсивно переименовывает файлы-изображения в указанной директории.
@@ -50,7 +51,10 @@ def rename_files(directory: str, dry_run: bool = False):
                     new_filename = generate_new_filename(filename, timestamp)
                     new_full_path = os.path.join(root, new_filename)
 
-                print(f"Переименование '{filename}' -> '{os.path.basename(new_full_path)}'")
+                print(
+                    f"Переименование '{filename}' -> "
+                    f"'{os.path.basename(new_full_path)}'"
+                )
 
                 if not dry_run:
                     shutil.move(full_path, new_full_path)
