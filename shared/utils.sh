@@ -227,7 +227,7 @@ setup_venv() {
     if confirm "Создать новое виртуальное окружение"; then
       echo "Создание виртуального окружения..."
       local python_cmd
-      python_cmd="$(choose_python "$python")" || return 1
+      python_cmd="$(choose_python "$python_bin")" || return 1
 
       if ! "$python_cmd" -m venv "$venv_dir"; then
         echo -e "${TITLE_ERROR}Не удалось создать виртуальное окружение."
