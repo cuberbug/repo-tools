@@ -9,12 +9,17 @@ cd "$REPO_ROOT" || exit 1
 
 git fetch --quiet
 
-LOCAL=$(git rev-parse @)
-REMOTE=$(git rev-parse @{u} 2>/dev/null)
+if [[ -z "$UPDATES" ]]; then
+    echo -e "${DECOR_YELLOW}Предупреждение: Upstream для текущей ветки не задан.${RESET}"
+    echo -e "${FG_YELLOW}Невозможно проверить актуальность.${RESET}"
+    exit 1
+fi
 
-if [[ "$LOCAL" == "$REMOTE" ]]; then
-  echo -e "${DECOR_BLUE}${FG_GREEN}Репозиторий уже находится в актуальном состоянии.${RESET}"
-  exit 0
+if (( UPDATES == 0 )); then
+    echo -e "${DECOR_GREEN}Репозиторий уже находится в актуальном состоянии.${RESET}"
+    exit 0
+else
+    echo -e "${DECOR_BLUE}Репозиторий отстаёт от удалённой ветки на $UPDATES коммитов.${RESET}"
 fi
 
 git status
