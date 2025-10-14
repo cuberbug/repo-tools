@@ -1,68 +1,99 @@
 import os
 import shutil
-import sys
+from time import sleep
+
+from rich.console import Console
+from rich.progress import Progress
+from rich.table import Table
 
 from .utils import is_image, is_already_renamed, generate_new_filename
 
+SLEEP_TIME: int | float = 0.01  # Задержка на 10 мс
+console = Console()
 
-def rename_files(directory: str, dry_run: bool = False):
+
+def rename_files(directory: str, dry_run: bool = False) -> None:
     """
-    Рекурсивно переименовывает файлы-изображения в указанной директории.
+    Переименовывает файлы в указанной директории по времени их модификации.
 
     Args:
-        directory: Путь к директории, которую нужно обработать.
-        dry_run: Если True, скрипт выведет, что будет сделано, но не будет
-                 реально переименовывать файлы.
+        directory: Путь к директории для обработки.
+        dry_run: Если True, то выполняется только симуляция переименования.
     """
     if not os.path.isdir(directory):
-        print(f"Ошибка: Директория '{directory}' не существует.")
-        sys.exit(1)
+        console.print(
+            f"[red]Ошибка: директория '{directory}' не существует.[/red]"
+        )
+        return
 
-    renamed_count = 0
-    skipped_count = 0
+    renamed_count: int = 0
+    skipped_count: int = 0
+    errors: int = 0
 
-    print(f"Сканирование директории: '{directory}'...")
+    console.print(
+        f"[bold cyan]Сканирование директории:[/bold cyan] {directory}"
+    )
     if dry_run:
-        print("Включен режим 'сухого запуска'. Файлы не будут переименованы.")
+        console.print("[yellow]Включен режим 'сухого запуска'.[/yellow]")
 
+    # Собираем список файлов заранее, чтобы отображать прогресс
+    all_files: list(tuple(str, str)) = []
     for root, _, files in os.walk(directory):
         for filename in files:
             full_path = os.path.join(root, filename)
+            if is_image(full_path):
+                all_files.append((root, filename))
 
-            if not is_image(full_path):
-                continue
+    if not all_files:
+        console.print("[yellow]Нет файлов для обработки.[/yellow]")
+        return
 
-            if is_already_renamed(filename):
-                skipped_count += 1
-                continue
+    progress = Progress()
+
+    with progress:
+        for root, filename in progress.track(
+            all_files,
+            description="Обработка файлов...",
+        ):
+            full_path = os.path.join(root, filename)
 
             try:
-                # Получает время последней модификации в секундах
-                timestamp = int(os.path.getmtime(full_path))
+                if is_already_renamed(filename):
+                    skipped_count += 1
+                    continue
 
-                # Формирует новое имя и путь
+                timestamp = int(os.path.getmtime(full_path))
                 new_filename = generate_new_filename(filename, timestamp)
                 new_full_path = os.path.join(root, new_filename)
 
-                # Проверяет, не существует ли уже файл с таким именем
+                # Разрешаем коллизии временных меток
                 while os.path.exists(new_full_path):
-                    # Если существует, увеличивает метку и генерирует новое имя
                     timestamp += 1
                     new_filename = generate_new_filename(filename, timestamp)
                     new_full_path = os.path.join(root, new_filename)
 
-                print(
-                    f"Переименование '{filename}' -> "
-                    f"'{os.path.basename(new_full_path)}'"
+                progress.console.print(
+                    f"[cyan]{filename}[/cyan] → [green]{new_filename}[/green]"
                 )
 
                 if not dry_run:
                     shutil.move(full_path, new_full_path)
                     renamed_count += 1
             except Exception as e:
-                print(f"Ошибка при обработке файла '{full_path}': {e}")
+                errors += 1
+                console.print(
+                    f"[red]Ошибка при обработке {full_path}: {e}[/red]"
+                )
 
-    print("\n---")
-    print("Результаты:")
-    print(f"Переименовано файлов: {renamed_count}")
-    print(f"Пропущено файлов (уже переименованы): {skipped_count}")
+            sleep(SLEEP_TIME)
+
+    # Выводим сводку
+    table = Table(title="Результаты переименования", show_lines=True)
+    table.add_column("Показатель", style="bold cyan")
+    table.add_column("Значение", style="bold white")
+
+    table.add_row("Переименовано файлов", str(renamed_count))
+    table.add_row("Пропущено (уже переименованы)", str(skipped_count))
+    table.add_row("Ошибок", str(errors))
+    console.print()
+    console.print(table)
