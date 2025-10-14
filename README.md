@@ -15,8 +15,10 @@
 
 - <img src="https://www.svgrepo.com/show/303548/git-icon-logo.svg" width="16" height="16"> [Git](https://git-scm.com)
 - <img src="https://www.svgrepo.com/show/452091/python.svg" width="16" height="16"> [Python](https://www.python.org) ≥ 3.10
+  - [questionary](https://pypi.org/project/questionary/)
+  - [rich](https://pypi.org/project/rich/)
 
-### Git-manager
+### GitOps
 
 Взаимодействие с Git автоматизировано посредством двух скриптов:
 - `push.sh`: Автоматически составит коммит и отправит его в репозиторий.

@@ -1,6 +1,7 @@
-from rich.console import Console
 import questionary
-from .utils import run_git, repo_is_clean
+from rich.console import Console
+
+from apps.gitops.src.utils import run_git, repo_is_clean
 
 console = Console()
 

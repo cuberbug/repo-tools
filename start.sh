@@ -16,12 +16,12 @@
 #   4. Запуск основного меню
 #
 # Структура путей:
-#   TOOLS_ROOT/               — корень инструментов
-#   ├── shared/decor.sh       — оформление вывода
-#   ├── shared/utils.sh       — логика и утилиты
-#   ├── requirements.txt      — список зависимостей
-#   ├── .venv/                — виртуальное окружение Python
-#   └── menu/menu.py          — главный модуль приложения
+#   TOOLS_ROOT/                — корень инструментов
+#   ├── scripts/decor.sh       — оформление вывода
+#   ├── scripts/utils.sh       — логика и утилиты
+#   ├── apps/requirements.txt  — список зависимостей
+#   ├── apps/.venv/            — виртуальное окружение Python
+#   └── apps/menu/menu.py      — главный модуль приложения
 #
 # Возвращаемые значения:
 #   0 — успешная инициализация и/или корректное завершение работы
@@ -42,16 +42,22 @@ set -o pipefail
 # --- Определение путей и подключение библиотек ---
 
 TOOLS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "${TOOLS_ROOT}/shared/decor.sh" || { echo "Ошибка: не найден decor.sh" >&2; exit 1; }
-source "${TOOLS_ROOT}/shared/utils.sh" || { echo "Ошибка: не найден utils.sh" >&2; exit 1; }
+# shellcheck disable=SC1091
+source "${TOOLS_ROOT}/scripts/decor.sh" || { echo "Ошибка: не найден decor.sh" >&2; exit 1; }
+# shellcheck disable=SC1091
+source "${TOOLS_ROOT}/scripts/utils.sh" || { echo "Ошибка: не найден utils.sh" >&2; exit 1; }
 
 
 # --- Настройка параментров виртуального окружения ---
 
-REQUIREMENTS_FILE="${TOOLS_ROOT}/requirements.txt"
-VENV_DIR="${TOOLS_ROOT}/.venv"
+APPS_DIR="${TOOLS_ROOT}/apps"
+
+REQUIREMENTS_FILE="${APPS_DIR}/requirements.txt"
+VENV_DIR="${APPS_DIR}/.venv"
 VENV_PYTHON_FILE="${VENV_DIR}/bin/python"
 VENV_PIP_FILE="${VENV_DIR}/bin/pip"
+
+MENU_APP="apps.menu.menu"
 
 
 # --- Основная логика ---
@@ -66,12 +72,14 @@ main() {
     --pip "$VENV_PIP_FILE" \
     --requirements "$REQUIREMENTS_FILE"
 
-  local venv_python="$(choose_python "$VENV_PYTHON_FILE")"
-  local menu_script="${TOOLS_ROOT}/menu/menu.py"
+  local venv_python
+
+  venv_python="$(choose_python "$VENV_PYTHON_FILE")"
 
   if confirm "Запустить главное меню"; then
     echo -e "${DECOR_BLUE}Запуск меню...${RESET}"
-    "$venv_python" "$menu_script"
+    cd "$TOOLS_ROOT"
+    "$venv_python" -m "$MENU_APP"
   else
     echo -e "${DECOR_YELLOW_FG}Запуск меню отменён.${RESET}"
   fi
@@ -86,6 +94,6 @@ else
   echo -e "\n${TITLE_ERROR}${BOLD}В процессе инициализации произошла ошибка.${RESET}"
   echo "Пожалуйста, просмотрите вывод выше, чтобы понять причину."
   echo "Окно не будет закрыто автоматически, чтобы вы могли изучить лог."
-  read -p "Нажмите Enter для выхода..."
+  read -r -p "Нажмите Enter для выхода..."
   exit 1
 fi

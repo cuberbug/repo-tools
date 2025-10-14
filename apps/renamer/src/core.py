@@ -6,7 +6,11 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
-from .utils import is_image, is_already_renamed, generate_new_filename
+from apps.renamer.src.utils import (
+    generate_new_filename,
+    is_already_renamed,
+    is_image,
+)
 
 SLEEP_TIME: int | float = 0.01  # Задержка на 10 мс
 console = Console()

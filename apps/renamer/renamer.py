@@ -8,7 +8,7 @@ import sys
 
 from rich.console import Console
 
-from src.core import rename_files
+from apps.renamer.src.core import rename_files
 
 console = Console()
 
