@@ -1,7 +1,7 @@
 from rich.console import Console
 import questionary
 
-from apps.menu.src.utils import is_submodule
+from apps.menu.src.utils import is_submodule, get_cuberbug_walls_path
 from apps.gitops.src.core import git_pull, git_push
 from apps.renamer.src.core import rename_files
 
@@ -57,7 +57,9 @@ def renamer_menu(is_submodule_mode: bool):
             break
         elif "cuberbug_walls/" in choice:
             dry_run = "сухой" in choice
-            rename_files(path="../cuberbug_walls", dry_run=dry_run)
+            walls_path = get_cuberbug_walls_path()
+            if walls_path:
+                rename_files(walls_path, dry_run=dry_run)
         elif "Указать свой путь" in choice:
             path = questionary.path("Укажите путь к директории:").ask()
             if not path:
