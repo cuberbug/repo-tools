@@ -2,7 +2,7 @@
 
 Это набор инструментов для использования в репозиториях, призванный упростить или автоматизировать некоторые рутинные задачи.
 
-## <img src="https://www.svgrepo.com/show/332258/branches.svg" width="34" height="34"> `dev`
+## <img src="https://www.svgrepo.com/show/332258/branches.svg" width="32" height="32"> `dev`
 
 Это **основная ветка для разработки** проекта. Сейчас идёт процесс перехода меню с bash на Python.
 
@@ -17,13 +17,24 @@
 
 - <img src="https://www.svgrepo.com/show/303548/git-icon-logo.svg" width="16" height="16"> [Git](https://git-scm.com)
 - <img src="https://www.svgrepo.com/show/452091/python.svg" width="16" height="16"> [Python](https://www.python.org) ≥ 3.10
-- Виртуальное окружение Python:
+  - Виртуальное окружение Python:
   - [questionary](https://pypi.org/project/questionary/)
   - [rich](https://pypi.org/project/rich/)
 
 ### Menu
 
-<описание>
+Интерактивное консольное приложение, созданное с использованием библиотек [rich](https://pypi.org/project/rich/) и [questionary](https://pypi.org/project/questionary/), предоставляет удобный интерфейс для навигации между доступными функциями.
+
+Главное меню позволяет:
+- выполнять Git-операции (`push` / `pull`) через модуль GitOps;
+- запускать Renamer для автоматического переименования изображений;
+- быстро переключаться между режимами работы и завершать программу без необходимости вручную вводить команды.
+
+Меню автоматически определяет контекст запуска:
+- если инструмент используется как сабмодуль внутри [cuberbug-walls](https://github.com/cuberbug/cuberbug-walls), оно предоставляет готовые пункты для автоматического запуска Renamer с корректными путями;
+- если приложение запущено автономно, то пользователю предлагается выбрать директорию вручную.
+
+Это делает Menu универсальной оболочкой, объединяющей все утилиты repo-tools под одним интерфейсом.
 
 ### GitOps
 
