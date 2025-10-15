@@ -19,9 +19,9 @@ def git_push():
             console.print("[cyan]Создание коммита...[/cyan]")
             run_git(["add", "."])
             run_git(["commit", "-m", f"Auto: {dt}"])
-            console.print("[green]Коммит создан[/green]")
+            console.print("[green]✔ Коммит создан[/green]")
         else:
-            console.print("[yellow]Отмена[/yellow]")
+            console.print("[yellow]✘ Отмена[/yellow]")
 
     if questionary.confirm("Отправить изменения в репозиторий?").ask():
         console.print("[cyan]Сохранение и отправка изменений...[/cyan]")
@@ -34,9 +34,9 @@ def git_push():
                 "[yellow]Попробуйте сначала выполнить pull.[/yellow]"
             )
         else:
-            console.print("[green]Изменения успешно отправлены[/green]")
+            console.print("[green]✔ Изменения успешно отправлены[/green]")
     else:
-        console.print("[yellow]Отмена[/yellow]")
+        console.print("[yellow]✘ Отмена[/yellow]")
 
 
 def git_pull():
@@ -64,7 +64,7 @@ def git_pull():
         return
 
     if updates_count == 0:
-        console.print("[green]Репозиторий уже актуален[/green]")
+        console.print("[green]✔ Репозиторий уже актуален[/green]")
         return
     else:
         console.print(
@@ -75,11 +75,11 @@ def git_pull():
     if questionary.confirm("Обновить локальный репозиторий (git pull)?").ask():
         result = run_git(["pull", "--ff-only"])
         if result:
-            console.print("[green]Репозиторий обновлён[/green]")
+            console.print("[green]✔ Репозиторий обновлён[/green]")
         else:
             console.print("[red]Не удалось выполнить pull.[/red]")
     else:
-        console.print("[yellow]Отмена[/yellow]")
+        console.print("[yellow]✘ Отмена[/yellow]")
 
 
 def main():

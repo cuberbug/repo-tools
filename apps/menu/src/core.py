@@ -6,10 +6,16 @@ from apps.gitops.src.core import git_pull, git_push
 from apps.renamer.src.core import rename_files
 
 console = Console()
+title_text = """
+::::::::::::::::::::::::::::::::::
+:::::::::: [bold cyan]Главное меню[/bold cyan] ::::::::::
+::::::::::::::::::::::::: v2.0.0 :
+
+"""
 
 
 def main_menu():
-    console.print("[bold cyan]Repo Tools — Главное меню[/bold cyan]\n")
+    console.print(title_text)
 
     submodule_mode = is_submodule()
 
