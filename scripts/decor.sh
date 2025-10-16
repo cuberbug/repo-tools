@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+# ==================================================
 # Хранит константы для оформления и работы с текстом
+# ==================================================
 
 
 # Сброс форматирования
@@ -22,9 +24,15 @@ FG_BOLD_YELLOW="\e[1;33m"
 FG_BOLD_BLUE="\e[1;34m"
 
 # Декораторы (готовые конструкции для сообщений)
-DECOR_RED="${FG_BOLD_RED}::${RESET}"
-DECOR_GREEN="${FG_BOLD_GREEN}::${RESET}"
-DECOR_YELLOW="${FG_BOLD_YELLOW}::${RESET}"
-DECOR_BLUE="${FG_BOLD_BLUE}::${RESET}"
-DECOR_ERROR="${FG_BOLD_RED}Ошибка:${RESET}"
-DECOR_SUCCESS="${FG_BOLD_GREEN}SUCCESS${RESET}"
+DECOR_RED="${FG_BOLD_RED}:: ${RESET}"
+DECOR_GREEN="${FG_BOLD_GREEN}:: ${RESET}"
+DECOR_YELLOW="${FG_BOLD_YELLOW}:: ${RESET}"
+DECOR_BLUE="${FG_BOLD_BLUE}:: ${RESET}"
+
+# Сокращения
+DECOR_GREEN_FG="${DECOR_GREEN}${FG_GREEN}"
+DECOR_YELLOW_FG="${DECOR_YELLOW}${FG_YELLOW}"
+DECOR_BLUE_FG="${DECOR_BLUE}${FG_BLUE}"
+
+TITLE_ERROR="${FG_BOLD_RED}:: Ошибка:\n${RESET}"
+DECOR_SUCCESS="${FG_BOLD_GREEN}:: Выполнено${RESET}"
