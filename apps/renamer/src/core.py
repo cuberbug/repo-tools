@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
 
-from apps.renamer.src.utils import (
+from .utils import (
     generate_new_filename,
     is_already_renamed,
     is_image,
