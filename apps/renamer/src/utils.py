@@ -7,13 +7,36 @@ LENGTH_UNIX_TIME: int = 10
 
 
 def is_image(filepath: str) -> bool:
-    """Проверяет, является ли файл изображением по расширению."""
+    """
+    Проверяет, является ли файл изображением по его расширению.
+
+    Args:
+        filepath (str): Полный путь к файлу.
+
+    Returns:
+        bool: True, если расширение поддерживается
+            (`SUPPORTED_IMAGE_EXTENSIONS`), иначе False.
+    """
     _, file_extension = os.path.splitext(filepath)
     return file_extension.lower() in SUPPORTED_IMAGE_EXTENSIONS
 
 
 def is_already_renamed(filename: str) -> bool:
-    """Проверяет, соответствует ли имя файла шаблону <timestamp>.<ext>."""
+    """
+    Проверяет, соответствует ли имя файла шаблону `<timestamp>.<ext>`.
+
+    Шаблон считается корректным, если:
+      - имя состоит только из цифр (`isdigit()`),
+      - длина имени равна `LENGTH_UNIX_TIME`,
+      - расширение поддерживается (`SUPPORTED_IMAGE_EXTENSIONS`).
+
+    Args:
+        filename (str): Имя файла без пути.
+
+    Returns:
+        bool: True, если файл уже имеет формат `<timestamp>.<ext>`,
+            иначе False.
+    """
     try:
         name, ext = os.path.splitext(filename)
         if (
@@ -28,6 +51,16 @@ def is_already_renamed(filename: str) -> bool:
 
 
 def generate_new_filename(filename: str, timestamp: int) -> str:
-    """Создаёт имя файла вида <timestamp>.<ext>."""
+    """
+    Генерирует новое имя файла в формате `<timestamp>.<ext>`.
+
+    Args:
+        filename (str): Оригинальное имя файла (используется для
+            сохранения расширения).
+        timestamp (int): Временная метка Unix (секунды с 1970 года).
+
+    Returns:
+        str: Новое имя файла, приведённое к нижнему регистру расширения.
+    """
     _, ext = os.path.splitext(filename)
     return f"{timestamp}{ext.lower()}"

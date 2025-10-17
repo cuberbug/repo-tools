@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import questionary
 from rich.console import Console
 
@@ -6,26 +8,64 @@ from apps.gitops.src.utils import run_git, repo_is_clean
 console = Console()
 
 
-def git_push():
-    """Отправка изменений в удалённый репозиторий"""
+def git_push(repo_root_path: Path | None = None) -> None:
+    """
+    Выполняет коммит и отправку изменений в удалённый репозиторий.
+
+    Алгоритм:
+      1. Проверяет наличие незакоммиченных изменений.
+      2. Предлагает создать автоматический коммит (UTC-время в сообщении).
+      3. При подтверждении — выполняет git add + git commit.
+      4. Предлагает выполнить git push.
+      5. Сообщает об успехе или ошибке операции.
+
+    Args:
+        repo_root_path (Path | None): Путь к корню репозитория.
+    """
     console.print("[bold cyan]Проверка состояния репозитория...[/bold cyan]")
 
-    if repo_is_clean():
+    if repo_is_clean(repo_root_path=repo_root_path):
         console.print("[green]Нет изменений для коммита[/green]")
     else:
+        console.print(
+            "\n[yellow]Обнаружены незакоммиченные изменения:[/yellow]"
+        )
+        diff_output = run_git(
+            ["status", "--short"],
+            repo_root_path=repo_root_path,
+            capture_output=True,
+        )
+
+        if diff_output:
+            console.print(f"[dim]{diff_output.strip()}[/dim]\n")
+        else:
+            console.print("[red]Не удалось получить список изменений.[/red]\n")
+
         if questionary.confirm("Составить автоматический коммит?").ask():
             from datetime import datetime
             dt = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
             console.print("[cyan]Создание коммита...[/cyan]")
-            run_git(["add", "."])
-            run_git(["commit", "-m", f"Auto: {dt}"])
+            run_git(
+                ["add", "."],
+                repo_root_path=repo_root_path,
+                capture_output=True,
+            )
+            run_git(
+                ["commit", "-m", f"Auto: {dt}"],
+                repo_root_path=repo_root_path,
+                capture_output=True,
+            )
             console.print("[green] ✔ Коммит создан[/green]")
         else:
             console.print("[yellow] ✘ Отмена[/yellow]")
 
     if questionary.confirm("Отправить изменения в репозиторий?").ask():
         console.print("[cyan]Сохранение и отправка изменений...[/cyan]")
-        if not run_git(["push"]):
+        if not run_git(
+            ["push"],
+            repo_root_path=repo_root_path,
+            capture_output=True,
+        ):
             console.print(
                 "[red]Не удалось выполнить push. Возможная причина: "
                 "удалённый репозиторий был обновлён.[/red]"
@@ -39,13 +79,30 @@ def git_push():
         console.print("[yellow] ✘ Отмена[/yellow]")
 
 
-def git_pull():
+def git_pull(repo_root_path: Path | None = None) -> None:
+    """
+    Выполняет git pull при наличии обновлений в удалённом репозитории.
+
+    Алгоритм:
+      1. Выполняет `git fetch` и сравнивает количество коммитов между
+        локальной и удалённой ветками.
+      2. Сообщает пользователю, если репозиторий неактуален.
+      3. Предлагает выполнить обновление (`git pull --ff-only`).
+      4. Выводит результат операции.
+
+    Args:
+        repo_root_path (Path | None): Путь к корню репозитория.
+    """
     console.print("[bold cyan]Проверка обновлений...[/bold cyan]")
-    run_git(["fetch", "--quiet"])
+    run_git(
+        ["fetch", "--quiet"],
+        repo_root_path=repo_root_path,
+    )
     updates_count_str = run_git(
         ["rev-list", "--count", "@..@{u}"],
+        repo_root_path=repo_root_path,
         capture_output=True,
-        silent=True
+        silent=True,
     )
 
     if not updates_count_str:
@@ -73,7 +130,11 @@ def git_pull():
         )
 
     if questionary.confirm("Обновить локальный репозиторий (git pull)?").ask():
-        result = run_git(["pull", "--ff-only"])
+        result = run_git(
+            ["pull", "--ff-only"],
+            repo_root_path=repo_root_path,
+            capture_output=True,
+        )
         if result:
             console.print("[green] ✔ Репозиторий обновлён[/green]")
         else:
@@ -83,7 +144,14 @@ def git_pull():
 
 
 def main():
-    """Интерактивный выбор действия"""
+    """
+    Отображает интерактивное меню для выбора Git-действий.
+
+    Доступные опции:
+      - Push (отправка изменений)
+      - Pull (обновление репозитория)
+      - Выход
+    """
     action = questionary.select(
         "Выберите действие:",
         choices=[
