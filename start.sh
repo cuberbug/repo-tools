@@ -42,6 +42,7 @@ set -o pipefail
 # --- Определение путей и подключение библиотек ---
 
 TOOLS_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$TOOLS_ROOT" || exit 1
 # shellcheck disable=SC1091
 source "${TOOLS_ROOT}/scripts/decor.sh" || { echo "Ошибка: не найден decor.sh" >&2; exit 1; }
 # shellcheck disable=SC1091
