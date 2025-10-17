@@ -101,10 +101,25 @@ confirm() {
 # ------------------------------------------------------------------------------
 choose_python() {
   local python_cmd=$1
-  if [[ -n "$python_cmd" && -x "$python_cmd" ]]; then
-    echo "$python_cmd"
+  local found_python=""
+
+  if [[ -n "$python_candidate" && -x "$python_candidate" ]]; then
+    found_python="$python_candidate"
+  fi
+
+  if [[ -z "$found_python" ]]; then
+    if command -v python3 &>/dev/null; then
+      found_python=$(command -v python3)
+    elif command -v python &>/dev/null; then
+      found_python=$(command -v python)
+    fi
+  fi
+
+  if [[ -n "$found_python" ]]; then
+    echo "$found_python"
+    return 0 # Найдено
   else
-    command -v python3 || command -v python
+    return 1 # Не найдено
   fi
 }
 
