@@ -100,7 +100,7 @@ confirm() {
 #   Строка — путь к подходящему интерпретатору Python
 # ------------------------------------------------------------------------------
 choose_python() {
-  local python_cmd=$1
+  local python_candidate=$1
   local found_python=""
 
   if [[ -n "$python_candidate" && -x "$python_candidate" ]]; then
