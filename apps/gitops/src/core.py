@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import questionary
@@ -14,19 +15,19 @@ def git_push(repo_root_path: Path | None = None) -> None:
 
     Алгоритм:
       1. Проверяет наличие незакоммиченных изменений.
-      2. Предлагает создать автоматический коммит (UTC-время в сообщении).
-      3. При подтверждении — выполняет git add + git commit.
-      4. Предлагает выполнить git push.
-      5. Сообщает об успехе или ошибке операции.
+      2. Показывает краткий список изменённых файлов.
+      3. Предлагает создать автоматический коммит (UTC-время в сообщении).
+      4. Проверяет наличие неотправленных коммитов.
+      5. Если они есть — предлагает выполнить git push.
+      6. Сообщает об успехе или ошибке операции.
 
     Args:
         repo_root_path (Path | None): Путь к корню репозитория.
     """
     console.print("[bold cyan]Проверка состояния репозитория...[/bold cyan]")
 
-    if repo_is_clean(repo_root_path=repo_root_path):
-        console.print("[green]Нет изменений для коммита[/green]")
-    else:
+    # --- Проверяем наличие незакоммиченных изменений ---
+    if not repo_is_clean(repo_root_path=repo_root_path):
         console.print(
             "\n[yellow]Обнаружены незакоммиченные изменения:[/yellow]"
         )
@@ -37,46 +38,61 @@ def git_push(repo_root_path: Path | None = None) -> None:
         )
 
         if diff_output:
-            console.print(f"[dim]{diff_output.strip()}[/dim]\n")
+            console.print(f"[dim]{diff_output}[/dim]\n")
         else:
             console.print("[red]Не удалось получить список изменений.[/red]\n")
 
         if questionary.confirm("Составить автоматический коммит?").ask():
-            from datetime import datetime
             dt = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
             console.print("[cyan]Создание коммита...[/cyan]")
-            run_git(
-                ["add", "."],
-                repo_root_path=repo_root_path,
-                capture_output=True,
-            )
+            run_git(["add", "."], repo_root_path=repo_root_path)
             run_git(
                 ["commit", "-m", f"Auto: {dt}"],
                 repo_root_path=repo_root_path,
-                capture_output=True,
             )
             console.print("[green] ✔ Коммит создан[/green]")
         else:
-            console.print("[yellow] ✘ Отмена[/yellow]")
-
-    if questionary.confirm("Отправить изменения в репозиторий?").ask():
-        console.print("[cyan]Сохранение и отправка изменений...[/cyan]")
-        if not run_git(
-            ["push"],
-            repo_root_path=repo_root_path,
-            capture_output=True,
-        ):
-            console.print(
-                "[red]Не удалось выполнить push. Возможная причина: "
-                "удалённый репозиторий был обновлён.[/red]"
-            )
-            console.print(
-                "[yellow]Попробуйте сначала выполнить pull.[/yellow]"
-            )
-        else:
-            console.print("[green] ✔ Изменения успешно отправлены[/green]")
+            console.print("[yellow] ✘ Коммит отменён[/yellow]")
     else:
-        console.print("[yellow] ✘ Отмена[/yellow]")
+        console.print("[green] ○ Нет изменений для коммита[/green]")
+
+    ahead_check = run_git(
+        ["rev-list", "@{u}..HEAD", "--count"],
+        repo_root_path=repo_root_path,
+        capture_output=True,
+    )
+
+    if ahead_check is None:
+        console.print(
+            "[yellow] ⚠ Не удалось определить состояние ветки",
+            "относительно origin.[/yellow]"
+        )
+        return
+
+    try:
+        ahead_count = int(ahead_check.strip())
+    except ValueError:
+        ahead_count = 0
+
+    if ahead_count == 0:
+        console.print("[green] ○ Нет новых коммитов для отправки.[/green]")
+        return
+
+    console.print(f"[cyan]Неотправленных коммитов: {ahead_count}[/cyan]")
+    if not questionary.confirm("Отправить изменения в репозиторий?").ask():
+        console.print("[yellow] ✘ Push отменён[/yellow]")
+        return
+
+    console.print("[cyan]Сохранение и отправка изменений...[/cyan]")
+    if not run_git(["push"], repo_root_path=repo_root_path):
+        console.print(
+            "[red]Не удалось выполнить push. "
+            "Возможная причина: удалённый репозиторий был обновлён.[/red]"
+        )
+        console.print("[yellow]Попробуйте сначала выполнить pull.[/yellow]")
+        return
+
+    console.print("[green] ✔ Изменения успешно отправлены[/green]")
 
 
 def git_pull(repo_root_path: Path | None = None) -> None:
@@ -99,7 +115,7 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         repo_root_path=repo_root_path,
     )
     updates_count_str = run_git(
-        ["rev-list", "--count", "@..@{u}"],
+        ["rev-list", "@..@{u}", "--count"],
         repo_root_path=repo_root_path,
         capture_output=True,
         silent=True,
@@ -107,7 +123,7 @@ def git_pull(repo_root_path: Path | None = None) -> None:
 
     if not updates_count_str:
         console.print(
-            "[yellow]Предупреждение: Upstream для текущей ветки не задан. "
+            "[yellow] ⚠ Upstream для текущей ветки не задан.",
             "Невозможно проверить актуальность.[/yellow]"
         )
         return
@@ -125,7 +141,7 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         return
     else:
         console.print(
-            "[yellow]Репозиторий отстаёт от удалённой ветки на "
+            "[yellow]Репозиторий отстаёт от удалённой ветки на",
             f"{updates_count} коммитов.[/yellow]"
         )
 
@@ -140,7 +156,7 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         else:
             console.print("[red]Не удалось выполнить pull.[/red]")
     else:
-        console.print("[yellow] ✘ Отмена[/yellow]")
+        console.print("[yellow] ✘ Обновление отменено[/yellow]")
 
 
 def main():
