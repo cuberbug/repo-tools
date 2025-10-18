@@ -139,24 +139,28 @@ def git_pull(repo_root_path: Path | None = None) -> None:
     if updates_count == 0:
         console.print("[green] ✔ Репозиторий уже актуален[/green]")
         return
-    else:
-        console.print(
-            "[yellow]Репозиторий отстаёт от удалённой ветки на",
-            f"{updates_count} коммитов.[/yellow]"
-        )
 
-    if questionary.confirm("Обновить локальный репозиторий (git pull)?").ask():
-        result = run_git(
-            ["pull", "--ff-only"],
-            repo_root_path=repo_root_path,
-            capture_output=True,
-        )
-        if result:
-            console.print("[green] ✔ Репозиторий обновлён[/green]")
-        else:
-            console.print("[red]Не удалось выполнить pull.[/red]")
-    else:
+    console.print(
+        "[yellow]Репозиторий отстаёт от удалённой ветки на",
+        f"{updates_count} коммитов.[/yellow]"
+    )
+
+    if not questionary.confirm(
+        "Обновить локальный репозиторий (git pull)?"
+    ).ask():
         console.print("[yellow] ✘ Обновление отменено[/yellow]")
+        return
+
+    result = run_git(
+        ["pull", "--ff-only"],
+        repo_root_path=repo_root_path,
+        capture_output=True,
+    )
+    if result:
+        console.print("[green] ✔ Репозиторий обновлён[/green]")
+        return
+
+    console.print("[red]Не удалось выполнить pull.[/red]")
 
 
 def main():
