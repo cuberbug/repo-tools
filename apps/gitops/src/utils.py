@@ -45,7 +45,8 @@ def run_git(
     except subprocess.CalledProcessError as e:
         if not silent:
             console.print(
-                f"[red]Ошибка при выполнении git {' '.join(args)}[/red]"
+                f"Ошибка при выполнении git {' '.join(args)}",
+                style="red"
             )
             if e.stderr:
                 console.print(e.stderr.strip())

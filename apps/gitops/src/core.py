@@ -24,12 +24,14 @@ def git_push(repo_root_path: Path | None = None) -> None:
     Args:
         repo_root_path (Path | None): Путь к корню репозитория.
     """
-    console.print("[bold cyan]Проверка состояния репозитория...[/bold cyan]")
+    console.print(
+        "Проверка состояния репозитория...", style="bold cyan"
+    )
 
     # --- Проверяем наличие незакоммиченных изменений ---
     if not repo_is_clean(repo_root_path=repo_root_path):
         console.print(
-            "\n[yellow]Обнаружены незакоммиченные изменения:[/yellow]"
+            "\nОбнаружены незакоммиченные изменения:", style="yellow"
         )
         diff_output = run_git(
             ["status", "--short"],
@@ -38,23 +40,23 @@ def git_push(repo_root_path: Path | None = None) -> None:
         )
 
         if diff_output:
-            console.print(f"[dim]{diff_output}[/dim]\n")
+            console.print(f"[dim]{diff_output}[/dim]")
         else:
-            console.print("[red]Не удалось получить список изменений.[/red]\n")
+            console.print("Не удалось получить список изменений.\n", style="red")
 
         if questionary.confirm("Составить автоматический коммит?").ask():
             dt = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-            console.print("[cyan]Создание коммита...[/cyan]")
+            console.print("Создание коммита...", style="cyan")
             run_git(["add", "."], repo_root_path=repo_root_path)
             run_git(
                 ["commit", "-m", f"Auto: {dt}"],
                 repo_root_path=repo_root_path,
             )
-            console.print("[green] ✔ Коммит создан[/green]")
+            console.print(" ✔ Коммит создан", style="green")
         else:
-            console.print("[yellow] ✘ Коммит отменён[/yellow]")
+            console.print(" ✘ Коммит отменён", style="yellow")
     else:
-        console.print("[green] ○ Нет изменений для коммита[/green]")
+        console.print(" ○ Нет изменений для коммита", style="green")
 
     ahead_check = run_git(
         ["rev-list", "@{u}..HEAD", "--count"],
@@ -64,8 +66,8 @@ def git_push(repo_root_path: Path | None = None) -> None:
 
     if ahead_check is None:
         console.print(
-            "[yellow] ⚠ Не удалось определить состояние ветки",
-            "относительно origin.[/yellow]"
+            " ⚠ Не удалось определить состояние ветки относительно origin.",
+            style="yellow"
         )
         return
 
@@ -75,24 +77,25 @@ def git_push(repo_root_path: Path | None = None) -> None:
         ahead_count = 0
 
     if ahead_count == 0:
-        console.print("[green] ○ Нет новых коммитов для отправки.[/green]")
+        console.print(" ○ Нет новых коммитов для отправки.", style="green")
         return
 
-    console.print(f"[cyan]Неотправленных коммитов: {ahead_count}[/cyan]")
+    console.print(f"Неотправленных коммитов: {ahead_count}", style="cyan")
     if not questionary.confirm("Отправить изменения в репозиторий?").ask():
-        console.print("[yellow] ✘ Push отменён[/yellow]")
+        console.print(" ✘ Push отменён", style="yellow")
         return
 
-    console.print("[cyan]Сохранение и отправка изменений...[/cyan]")
+    console.print("Сохранение и отправка изменений...", style="cyan")
     if not run_git(["push"], repo_root_path=repo_root_path):
         console.print(
-            "[red]Не удалось выполнить push. "
-            "Возможная причина: удалённый репозиторий был обновлён.[/red]"
+            "Не удалось выполнить push.",
+            "Возможная причина: удалённый репозиторий был обновлён.",
+            style="red"
         )
-        console.print("[yellow]Попробуйте сначала выполнить pull.[/yellow]")
+        console.print("Попробуйте сначала выполнить pull.", style="yellow")
         return
 
-    console.print("[green] ✔ Изменения успешно отправлены[/green]")
+    console.print(" ✔ Изменения успешно отправлены", style="green")
 
 
 def git_pull(repo_root_path: Path | None = None) -> None:
@@ -109,7 +112,7 @@ def git_pull(repo_root_path: Path | None = None) -> None:
     Args:
         repo_root_path (Path | None): Путь к корню репозитория.
     """
-    console.print("[bold cyan]Проверка обновлений...[/bold cyan]")
+    console.print("Проверка обновлений...", style="bold cyan")
     run_git(
         ["fetch", "--quiet"],
         repo_root_path=repo_root_path,
@@ -123,8 +126,9 @@ def git_pull(repo_root_path: Path | None = None) -> None:
 
     if not updates_count_str:
         console.print(
-            "[yellow] ⚠ Upstream для текущей ветки не задан.",
-            "Невозможно проверить актуальность.[/yellow]"
+            " ⚠ Upstream для текущей ветки не задан.",
+            "Невозможно проверить актуальность.",
+            style="yellow"
         )
         return
 
@@ -132,23 +136,24 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         updates_count = int(updates_count_str.strip())
     except ValueError:
         console.print(
-            "[red]Ошибка: Не удалось распознать счётчик коммитов от Git.[/red]"
+            "Ошибка: Не удалось распознать счётчик коммитов от Git.", style="red"
         )
         return
 
     if updates_count == 0:
-        console.print("[green] ✔ Репозиторий уже актуален[/green]")
+        console.print(" ✔ Репозиторий уже актуален", style="green")
         return
 
     console.print(
-        "[yellow]Репозиторий отстаёт от удалённой ветки на",
-        f"{updates_count} коммитов.[/yellow]"
+        "Репозиторий отстаёт от удалённой ветки на",
+        f"[red]{updates_count}[/red] коммитов.",
+        style="yellow"
     )
 
     if not questionary.confirm(
         "Обновить локальный репозиторий (git pull)?"
     ).ask():
-        console.print("[yellow] ✘ Обновление отменено[/yellow]")
+        console.print(" ✘ Обновление отменено", style="yellow")
         return
 
     result = run_git(
@@ -157,10 +162,10 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         capture_output=True,
     )
     if result:
-        console.print("[green] ✔ Репозиторий обновлён[/green]")
+        console.print(" ✔ Репозиторий обновлён", style="green")
         return
 
-    console.print("[red]Не удалось выполнить pull.[/red]")
+    console.print("Не удалось выполнить pull.", style="red")
 
 
 def main():
@@ -186,4 +191,4 @@ def main():
     elif action.startswith("Pull"):
         git_pull()
     else:
-        console.print("[yellow]Выход[/yellow]")
+        console.print("Выход", style="yellow")
