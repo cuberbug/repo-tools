@@ -40,7 +40,7 @@ def rename_files(directory: str, dry_run: bool = False) -> None:
     """
     if not os.path.isdir(directory):
         console.print(
-            f"[red]Ошибка: директория '{directory}' не существует.[/red]"
+            f"Ошибка: директория '{directory}' не существует.", style="red"
         )
         return
 
@@ -52,7 +52,7 @@ def rename_files(directory: str, dry_run: bool = False) -> None:
         f"[bold cyan]Сканирование директории:[/bold cyan] {directory}"
     )
     if dry_run:
-        console.print("[yellow]Включен режим 'сухого запуска'.[/yellow]")
+        console.print("Включен режим 'сухого запуска'.", style="yellow")
 
     # Собираем список файлов заранее, чтобы отображать прогресс
     all_files: list(tuple(str, str)) = []
@@ -63,7 +63,7 @@ def rename_files(directory: str, dry_run: bool = False) -> None:
                 all_files.append((root, filename))
 
     if not all_files:
-        console.print("[yellow]Нет файлов для обработки.[/yellow]")
+        console.print("Нет файлов для обработки.", style="yellow")
         return
 
     progress = Progress()
@@ -100,7 +100,7 @@ def rename_files(directory: str, dry_run: bool = False) -> None:
             except Exception as e:
                 errors += 1
                 console.print(
-                    f"[red]Ошибка при обработке {full_path}: {e}[/red]"
+                    f"Ошибка при обработке {full_path}: {e}", style="red"
                 )
 
             sleep(SLEEP_TIME)

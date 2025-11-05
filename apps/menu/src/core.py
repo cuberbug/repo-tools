@@ -13,7 +13,7 @@ console = Console()
 title_text = """
 ::::::::::::::::::::::::::::::::::::::
 :::::::::::: [bold cyan]Главное меню[/bold cyan] ::::::::::::
-:::::::::::::::::::::::::::: v2.0.4 ::
+:::::::::::::::::::::::::::: v2.0.5 ::
 
 """
 
@@ -76,7 +76,7 @@ def renamer_menu(cuberbug_walls_path: Path | None) -> None:
         cuberbug_walls_path (Path | None): Путь к директории с изображениями
             (если обнаружена автоматически).
     """
-    console.print("\n[bold cyan]Renamer — Подменю[/bold cyan]\n")
+    console.print("\nRenamer — Подменю\n", style="bold cyan")
 
     choices = []
     if cuberbug_walls_path:
@@ -101,7 +101,7 @@ def renamer_menu(cuberbug_walls_path: Path | None) -> None:
         elif "Указать свой путь" in choice:
             path = questionary.path("Укажите путь к директории:").ask()
             if not path:
-                console.print("[red]Отменено[/red]")
+                console.print("Отменено", style="red")
                 continue
             dry_run = questionary.confirm(
                 "Выполнить сухой запуск (без переименования)?"
