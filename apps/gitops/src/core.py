@@ -42,14 +42,16 @@ def git_push(repo_root_path: Path | None = None) -> None:
         if diff_output:
             console.print(f"[dim]{diff_output}[/dim]")
         else:
-            console.print("Не удалось получить список изменений.\n", style="red")
+            console.print(
+                "Не удалось получить список изменений.\n", style="red"
+            )
 
         if questionary.confirm("Составить автоматический коммит?").ask():
             dt = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
             console.print("Создание коммита...", style="cyan")
             run_git(["add", "."], repo_root_path=repo_root_path)
             run_git(
-                ["commit", "-m", f"Auto: {dt}"],
+                ["commit", "-m", f"auto: {dt}"],
                 repo_root_path=repo_root_path,
             )
             console.print(" ✔ Коммит создан", style="green")
@@ -136,7 +138,8 @@ def git_pull(repo_root_path: Path | None = None) -> None:
         updates_count = int(updates_count_str.strip())
     except ValueError:
         console.print(
-            "Ошибка: Не удалось распознать счётчик коммитов от Git.", style="red"
+            "Ошибка: Не удалось распознать счётчик коммитов от Git.",
+            style="red"
         )
         return
 

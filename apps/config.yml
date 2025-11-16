@@ -1,0 +1,40 @@
+# Текущая версия
+version: "v2.1.0"
+
+# Шапка меню с отображением версии
+repo_tools_title: |
+  ::::::::::::::::::::::::::::::::::::::
+  ::::::::::::  [bold cyan]Repo-Tools[/bold cyan]  ::::::::::::
+  :::::::::::::::::::::::::::: {version} ::
+
+questionary_title: "Выберите действие:"
+
+# --- Описания действий и меню ---
+menu:
+  # Используется для основного меню (action)
+  git_push:
+    title: "Сохранить (git push)"
+  git_pull:
+    title: "Обновить (git pull)"
+  renamer_menu:
+    title: "Renamer (переименование изображений)"
+  exit:
+    title: "Выход"
+
+  # Используется для подменю Renamer (renamer_action)
+renamer:
+  title: "Renamer"
+  dry_run_cuberbug_walls:
+    title: "Переименовать изображения в cuberbug_walls/ (сухой запуск)"
+    dry_run: true
+  full_cuberbug_walls:
+    title: "Переименовать изображения в cuberbug_walls/"
+  custom_path:
+    title: "Указать свой путь к директории для запуска"
+  back:
+    title: "Назад"
+
+  question_path:
+    title: "Укажите путь к директории:"
+  question_dry_run:
+    title: "Выполнить сухой запуск (без переименования)?"
