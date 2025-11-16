@@ -1,4 +1,4 @@
-from apps.menu.src.core import main_menu
+from apps.menu.src.core import main
 
 if __name__ == "__main__":
-    main_menu()
+    main()
