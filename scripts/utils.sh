@@ -3,41 +3,20 @@
 # Вспомогательные утилиты для настройки и запуска Python-проектов.
 # ------------------------------------------------------------------------------
 # Содержит:
-#   - Проверку системных зависимостей
 #   - Универсальную функцию подтверждения действий
 #   - Выбор интерпретатора Python
 #   - Настройку виртуального окружения
 # ==============================================================================
 
 
-# ------------------------------------------------------------------------------
-# Имя функции: check_dependencies
-#
-# Назначение:
-#   Проверяет наличие системных зависимостей (Git и Python).
-#
-# Возвращаемые значения:
-#   0 — если все зависимости найдены
-#   1 — если отсутствует хотя бы одна зависимость
-# ------------------------------------------------------------------------------
-check_dependencies() {
-  echo -e "${DECOR_BLUE}Проверка системных зависимостей...${RESET}"
-  if ! command -v git &>/dev/null; then
-    echo -e "${TITLE_ERROR}Git не найден. Пожалуйста, установите Git."
-    return 1
-  fi
-  if ! command -v python3 &>/dev/null && ! command -v python &>/dev/null; then
-    echo -e "${TITLE_ERROR}Python не найден. Пожалуйста, установите Python."
-    return 1
-  fi
-  echo -e "${DECOR_GREEN}Все системные зависимости найдены.${RESET}"
-  return 0
-}
+set -o errexit
+set -o nounset
+set -o pipefail
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # Имя функции: confirm
-#
+# ------------------------------------------------------------------------------
 # Назначение:
 #   Запрашивает у пользователя подтверждение действия (да/нет).
 #
@@ -50,20 +29,28 @@ check_dependencies() {
 # Возвращаемые значения:
 #   0 — если пользователь подтвердил
 #   1 — если отклонил
-# ------------------------------------------------------------------------------
+# ==============================================================================
 confirm() {
   local message=$1
   local default_choice=${2:-yes}
   local prompt_suffix
 
   if [[ "$default_choice" == "-n" ]]; then
-    prompt_suffix="[y/N]"
+    prompt_suffix=$(f_bold "N")
+    prompt_suffix=$(f_red "$prompt_suffix")
+    prompt_suffix="[y/${prompt_suffix}]"
   else
-    prompt_suffix="[Y/n]"
+    prompt_suffix=$(f_bold "Y")
+    prompt_suffix=$(f_green "$prompt_suffix")
+    prompt_suffix="[${prompt_suffix}/n]"
   fi
 
   while true; do
-    echo -ne "\n${DECOR_BLUE_FG}${message}?${RESET} ${prompt_suffix}: "
+    local format_message
+
+    format_message="$(f_bold "${message}?")"
+    format_message="$(f_blue "${format_message}")"
+    printf "%s %s " "${format_message}" "${prompt_suffix}:"
     read -r response
     response=${response,,}
 
@@ -78,16 +65,16 @@ confirm() {
         fi
         ;;
       *)
-        echo -e "${DECOR_YELLOW_FG}Неверный ввод, попробуйте снова.${RESET}"
+        e_stop "$(f_yellow "Неверный ввод, попробуйте снова.")"
         ;;
     esac
   done
 }
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # Имя функции: choose_python
-#
+# ------------------------------------------------------------------------------
 # Назначение:
 #   Определяет, какой Python-интерпретатор использовать.
 #   Если переданный путь существует и исполняемый — возвращает его.
@@ -98,101 +85,36 @@ confirm() {
 #
 # Возвращаемое значение:
 #   Строка — путь к подходящему интерпретатору Python
-# ------------------------------------------------------------------------------
+#
+# Код возврата:
+#   0 — интерпретатор найден.
+#   1 — не удалось найти интерпретатор.
+# ==============================================================================
 choose_python() {
-  local python_candidate=$1
+  local python_candidate=${1:-}
   local found_python=""
 
   if [[ -n "$python_candidate" && -x "$python_candidate" ]]; then
-    found_python="$python_candidate"
-  fi
-
-  if [[ -z "$found_python" ]]; then
-    if command -v python3 &>/dev/null; then
-      found_python=$(command -v python3)
-    elif command -v python &>/dev/null; then
-      found_python=$(command -v python)
-    fi
-  fi
-
-  if [[ -n "$found_python" ]]; then
-    echo "$found_python"
-    return 0 # Найдено
-  else
-    return 1 # Не найдено
-  fi
-}
-
-
-# ------------------------------------------------------------------------------
-# Имя функции: install_requirements
-#
-# Назначение:
-#   Устанавливает Python-зависимости из указанного файла requirements.txt.
-#   Перед установкой обновляет pip до последней версии.
-#
-# Аргументы (все обязательны):
-#   --python <path>       — путь до бинарного файла python в окружении
-#   --pip <path>          — путь до бинарного файла pip в окружении
-#   --requirements <path> — путь до файла зависимостей
-#
-# Возвращаемые значения:
-#   0 — зависимости успешно установлены
-#   1 — при ошибке установки или некорректных аргументах
-#
-# Пример:
-#   install_requirements \
-#     --python "./.venv/bin/python" \
-#     --pip "./.venv/bin/pip" \
-#     --requirements "./requirements.txt"
-# ------------------------------------------------------------------------------
-install_requirements() {
-  local python_bin="" pip_bin="" requirements=""
-
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      --python)       python_bin=$2; shift 2 ;;
-      --pip)          pip_bin=$2; shift 2 ;;
-      --requirements) requirements=$2; shift 2 ;;
-      *) echo "Неизвестный аргумент: $1" >&2; return 1 ;;
-    esac
-  done
-
-  if [[ -z "$python_bin" || -z "$pip_bin" || -z "$requirements" ]]; then
-    echo -e "${TITLE_ERROR}Отсутствуют обязательные аргументы для install_requirements.${RESET}"
-    return 1
-  fi
-
-  if [[ ! -x "$python_bin" || ! -x "$pip_bin" ]]; then
-    echo -e "${TITLE_ERROR}Указанные файлы python/pip недоступны или не исполняемы.${RESET}"
-    return 1
-  fi
-
-  if [[ ! -f "$requirements" || ! -s "$requirements" ]]; then
-    echo -e "${DECOR_GREEN}Установка зависимостей не требуется (requirements.txt отсутствует или пуст).${RESET}"
+    echo "$python_candidate"
     return 0
   fi
 
-  echo -e "${DECOR_BLUE}Обновление pip и установка зависимостей из ${requirements}...${RESET}"
+  # Поиск системного Python
+  if found_python=$(command -v python3); then
+    echo "$found_python"
+    return 0
+  elif found_python=$(command -v python); then
+    echo "$found_python"
+    return 0
+  fi
 
-  "$python_bin" -m pip install --upgrade pip || {
-    echo -e "${TITLE_ERROR}Не удалось обновить pip.${RESET}"
-    return 1
-  }
-
-  "$pip_bin" install -r "$requirements" || {
-    echo -e "${TITLE_ERROR}Ошибка при установке зависимостей.${RESET}"
-    return 1
-  }
-
-  echo -e "${DECOR_GREEN_FG}Зависимости успешно установлены.${RESET}"
-  return 0
+  return 1
 }
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # Имя функции: setup_venv
-#
+# ------------------------------------------------------------------------------
 # Назначение:
 #   Создаёт и настраивает виртуальное окружение Python.
 #   При необходимости обновляет зависимости из requirements.txt.
@@ -213,62 +135,150 @@ install_requirements() {
 #     --python "./.venv/bin/python" \
 #     --pip "./.venv/bin/pip" \
 #     --requirements "./requirements.txt"
-# ------------------------------------------------------------------------------
+# ==============================================================================
 setup_venv() {
-  local venv_dir="" python_bin="" pip_bin="" requirements=""
   local venv_created=false
+  local venv_dir python_bin pip_bin requirements
+
+  if [[ $# -ne 8 ]]; then
+    e_error "$(f_bold "setup_venv") требует 4 пары аргументов в формате ключ-значение."
+    return 1
+  fi
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      --venv-dir)     venv_dir=$2; shift 2 ;;
-      --python)       python_bin=$2; shift 2 ;;
-      --pip)          pip_bin=$2; shift 2 ;;
+      --venv-dir)     venv_dir=$2;     shift 2 ;;
+      --python)       python_bin=$2;   shift 2 ;;
+      --pip)          pip_bin=$2;      shift 2 ;;
       --requirements) requirements=$2; shift 2 ;;
-      *) echo "Неизвестный аргумент: $1"; return 1 ;;
+      *) e_error "Неизвестный аргумент: $1"; return 1 ;;
     esac
   done
 
   if [[ -z "$venv_dir" || -z "$python_bin" || -z "$pip_bin" || -z "$requirements" ]]; then
-    echo -e "${TITLE_ERROR}Отсутствуют обязательные аргументы для setup_venv.${RESET}"
+    e_error "Отсутствуют обязательные аргументы для setup_venv."
     return 1
   fi
 
   if [[ -d "$venv_dir" ]]; then
-    echo -e "${DECOR_GREEN}Найдено установленное виртуальное окружение Python."
+    e_done "Найдено установленное виртуальное окружение Python."
   else
-    echo -e "${DECOR_YELLOW_FG}Виртуальное окружение Python не установлено.${RESET}"
-    echo -e "Можно установить его автоматически в директорию: ${BOLD}${venv_dir}${RESET}"
+    e_info "$(f_yellow "Виртуальное окружение Python не установлено.")"
+    e_info "Можно установить его автоматически в директорию: $(f_bold "${venv_dir}")"
 
     if confirm "Создать новое виртуальное окружение"; then
-      echo "Создание виртуального окружения..."
-      local python_cmd
-      python_cmd="$(choose_python "$python_bin")" || return 1
+      e_info "Создание виртуального окружения..."
 
-      if ! "$python_cmd" -m venv "$venv_dir"; then
-        echo -e "${TITLE_ERROR}Не удалось создать виртуальное окружение."
+      # Для создания используем системный Python
+      local system_python
+      system_python="$(choose_python)" || {
+         e_error "Не найден системный Python для создания окружения."
+         return 1
+      }
+
+      if ! "$system_python" -m venv "$venv_dir"; then
+        e_error "Не удалось создать виртуальное окружение."
         return 1
       fi
+      e_done "$(f_green "Новое виртуальное окружение создано.")"
       venv_created=true
     else
-      echo -e "${DECOR_YELLOW_FG}Создание окружения отменено.${RESET}"
-      echo -e "${FG_YELLOW}Продолжение работы небезопасно: будет использоваться системный Python.${RESET}"
+      e_stop "$(f_yellow "Создание окружения отменено.")"
       return 1
     fi
   fi
 
-  if [[ "$venv_created" != true ]]; then
-    if ! confirm "Проверить зависимости и обновить окружение"; then
-      echo -e "${DECOR_YELLOW_FG}Проверка зависимостей отменена.${RESET}"
-      return 1
+  # Логика обновления зависимостей
+  local should_install=false
+
+  if [[ "$venv_created" == true ]]; then
+    should_install=true
+  else
+    # Предлагаем "No" по умолчанию
+    if confirm "Проверить зависимости и обновить окружение" -n; then
+       should_install=true
+    else
+       e_stop "Проверка зависимостей пропущена пользователем."
+       return 0 
     fi
   fi
 
-  install_requirements \
-    --python "$python_bin" \
-    --pip "$pip_bin" \
-    --requirements "$requirements" \
-    || return 1
+  if [[ "$should_install" == true ]]; then
+    install_requirements \
+      --python "$python_bin" \
+      --pip "$pip_bin" \
+      --requirements "$requirements" \
+      || return 1
+  fi
+}
 
-  echo -e "${DECOR_GREEN_FG}Виртуальное окружение полностью готово к использованию.${RESET}"
+
+# ==============================================================================
+# Имя функции: install_requirements
+# ------------------------------------------------------------------------------
+# Назначение:
+#   Устанавливает Python-зависимости из указанного файла requirements.txt.
+#   Перед установкой обновляет pip до последней версии.
+#
+# Аргументы (все обязательны):
+#   --python <path>       — путь до бинарного файла python в окружении
+#   --pip <path>          — путь до бинарного файла pip в окружении
+#   --requirements <path> — путь до файла зависимостей
+#
+# Возвращаемые значения:
+#   0 — зависимости успешно установлены
+#   1 — при ошибке установки или некорректных аргументах
+#
+# Пример:
+#   install_requirements \
+#     --python "./.venv/bin/python" \
+#     --pip "./.venv/bin/pip" \
+#     --requirements "./requirements.txt"
+# ==============================================================================
+install_requirements() {
+  local python_bin pip_bin requirements
+
+  if [[ $# -ne 6 ]]; then
+    e_error "$(f_bold "install_requirements") требует 3 пары аргументов в формате ключ-значение."
+    return 1
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --python)       python_bin=$2;   shift 2 ;;
+      --pip)          pip_bin=$2;      shift 2 ;;
+      --requirements) requirements=$2; shift 2 ;;
+      *) e_error "Неизвестный аргумент: $1"; return 1 ;;
+    esac
+  done
+
+  if [[ -z "$python_bin" || -z "$pip_bin" || -z "$requirements" ]]; then
+    e_error "Отсутствуют обязательные аргументы для install_requirements."
+    return 1
+  fi
+
+  if [[ ! -x "$python_bin" || ! -x "$pip_bin" ]]; then
+    e_error "Указанные файлы python/pip недоступны или не исполняемы."
+    return 1
+  fi
+
+  if [[ ! -f "$requirements" || ! -s "$requirements" ]]; then
+    e_done "$(f_green "Установка зависимостей не требуется") (requirements.txt отсутствует или пуст)."
+    return 0
+  fi
+
+  e_info "Обновление $(f_bold "pip") и установка зависимостей из $(f_bold "${requirements}")..."
+
+  "$python_bin" -m pip install --upgrade pip || {
+    e_error "Не удалось обновить pip."
+    return 1
+  }
+
+  "$pip_bin" install -r "$requirements" || {
+    e_error "Ошибка при установке зависимостей."
+    return 1
+  }
+
+  e_done "$(f_green "Зависимости успешно установлены.")"
   return 0
 }
